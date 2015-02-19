@@ -5,17 +5,26 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.io.PrintStream;
 import java.io.Writer;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+
+import javax.swing.JFrame;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JTextArea;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableModel;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -28,14 +37,26 @@ public class MainClass {
             "Taskin Ahmed", "Shapoor Zadran", "Gulbadin Naib", "Kamran Shazad" };
     private static String[] ACU = { "AM Rahane", "Mohammad Irfan", "Q de Kock", "Sikandar Raza", "MM Ali", "KS Williamson", "JE Taylor", "Mahmudullah", "Aftab Alam",
             "RD Berrington", "MJ Clarke", "CJ Jordan", "PKD Chase", "Amjad Ali" };
-    private static String[] AJ = { "KC Sangakkara", "DA Warner", "AM Phangiso", "Mirwais Ashraf", "Arafat Sunny", "Farhaan Behardien", "Imran Tahir", "Luke Ronchi",
-            "Iain Wardlaw", "SC Williams", "CR Ervine", "HMRKB Herath", "KJ Coetzer", "GS Ballance" };
+    private static String[] AJ = { "KC Sangakkara", "DA Warner", "AM Phangiso", "Mirwais Ashraf", "Arafat Sunny", "F Behardien", "Imran Tahir", "L Ronchi", "I Wardlaw",
+            "SC Williams", "CR Ervine", "HMRKB Herath", "KJ Coetzer", "GS Ballance" };
     private static String[] WM = { "SR Thompson", "Sabbir Rahman", "Nawroz Mangal", "Krishna Chandran", "MN Samuels", "UT Yadav", "TA Boult", "ST Finn", "CS MacLeod", "DR Smith",
             "AF Milne", "MH Cross", "SR Watson", "Nasir Jamshed" };
+    private static String[] SS = { "AB de Villiers", "Mohammad Naveed", "BMAJ Mendis", "Samiullah Shenwari", "Mominul Haque", "JWA Taylor", "AD Hales", "LRPL Taylor", "AT Rayudu",
+            "Dawlat Zadran", "AJ Finch", "AR McBrine" };
+    private static String[] MAL = { "LMP Simmons", "GJ Bailey", "Misbah-ul-Haq", "MS Dhoni", "KJ O'Brien", "R Ashwin", "P Utseya", "SMSM Senanayake", "B Kumar", "JO Holder" };
+    private static String[] ZTB = { "Shakib Al Hasan", "CR Woakes", "MA Starc", "MJ McClenaghan", "TL Chatara", "EC Joyce", "VD Philander", "EJG Morgan", "A Balbirnie",
+            "CA Young", "PL Mommsen", "JL Carter", "Sohaib Maqsood", "Najibullah Zadran" };
+    private static String[] YDAS = { "SPD Smith", "XJ Doherty", "AR Patel", "STR Binny", "SCJ Broad", "RS Bopara", "KMDN Kulasekara", "DA Miller", "Mohammad Nabi", "Umar Akmal",
+            "D Ramdin", "AR Cusack", "Khurram Khan", "T Mupariwa" };
+    private static String[] TUS = { "CJ Anderson", "GJ Maxwell", "RA Jadeja", "DL Vettori", "Shaiman Anwar", "Mohammad Tauqir", "CJ Chibhabha", "H Masakadza", "FDM Karunaratne",
+            "JM Anderson", "Sarfraz Ahmed", "JC Tredwell", "RR Rossouw", "PJ Cummins" };
 
     public static HashMap<String, Integer> teamPoints = new HashMap<String, Integer>();
 
     public static void main(String args[]) throws IOException {
+        File cacheFolder = new File("cache");
+        if (!cacheFolder.exists())
+            cacheFolder.mkdirs();
         // Get Document from URL
         Document doc = Jsoup.connect("http://www.espncricinfo.com/icc-cricket-world-cup-2015/content/series/509587.html?template=fixtures").get();
         // JQuery style Selector, gets all <a> inside play_team css class
@@ -44,11 +65,32 @@ public class MainClass {
             // Gets href of <a>
             parseScorecard(e.attr("abs:href"));
         }
+        // Handling Taylor Case
+        playerPoints.put("RML Taylor", playerPoints.getOrDefault("RML Taylor", 0) + 20);
+        playerPoints.put("LRPL Taylor", playerPoints.getOrDefault("LRPL Taylor", 0) + 20);
+
         teamPoints.put("Srini Mama Loyalists", calculateTeamPoints(SML));
         teamPoints.put("A-Class United", calculateTeamPoints(ACU));
         teamPoints.put("Aadama Jaichomada", calculateTeamPoints(AJ));
         teamPoints.put("Wicked Maidens", calculateTeamPoints(WM));
-        printMap(sortByComparator(playerPoints, false));
+        teamPoints.put("Swashbuckling Sudarshans", calculateTeamPoints(SS));
+        teamPoints.put("Mama's Asthana Loyalists", calculateTeamPoints(MAL));
+        teamPoints.put("Mama's Asthana Loyalists", calculateTeamPoints(MAL));
+        teamPoints.put("ZZZTHATBALL", calculateTeamPoints(ZTB));
+        teamPoints.put("Yenna Da Anga Satham", calculateTeamPoints(YDAS));
+        teamPoints.put("The Usual Suspects", calculateTeamPoints(TUS));
+
+        // printMap(sortByComparator(playerPoints, false));
+        JFrame frame = new JFrame("Cricketism Scorecard");
+        final JScrollPane scrolll = new JScrollPane(new JTable(toTableModel(sortByComparator(teamPoints, false))));
+
+        frame.add(scrolll);
+
+        frame.setSize(300, 300);
+        frame.setLocationRelativeTo(null);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setVisible(true);
+
     }
 
     public static int calculateTeamPoints(String[] playerNames) {
@@ -60,26 +102,27 @@ public class MainClass {
     }
 
     public static void parseScorecard(String link) throws IOException {
-        String matchCode=link.replaceAll(".*match", "");
+        String matchCode = link.replaceAll(".*match", "");
         link = link += "?view=scorecard";
         // Timeout to connect statement to avoid Timedoutexception, if you get
         // same exception increase timeout
-        File f = new File("cache"+matchCode);
+        File f = new File("cache" + matchCode);
         Document doc;
-        if(f.exists() && !f.isDirectory()) { 
+        if (f.exists() && !f.isDirectory()) {
             /* do something */
-            doc = Jsoup.parse(f,"utf-8","http://www.espncricinfo.com/");
-        }
-        else{
-            doc=Jsoup.connect(link).timeout(10000).get();
-            if(!link.contains("current")){
-                cacheHTML(doc.html(),"cache"+matchCode);
+            doc = Jsoup.parse(f, "utf-8", "http://www.espncricinfo.com/");
+        } else {
+            doc = Jsoup.connect(link).timeout(10000).get();
+            if (!link.contains("current")) {
+                cacheHTML(doc.html(), "cache" + matchCode);
             }
-            
         }
         Elements playerNames = doc.select(".playerName");
-        Set<String> players= new HashSet<String>();
-        for (Element player : playerNames) players.add(player.html());
+        Set<String> players = new HashSet<String>();
+
+        for (Element player : playerNames)
+            players.add(player.html());
+
         // Gets all elements with batsman-name css class
         Elements batsmanName = doc.select(".batsman-name");
         for (Element batsman : batsmanName) {
@@ -97,7 +140,6 @@ public class MainClass {
             if (!srate.equals("-"))
                 sr = Float.parseFloat(srate);
             playerPoints.put(name, playerPoints.getOrDefault(name, 0) + calculateBattingPoints(runs, balls, fours, six, sr));
-
         }
         Elements bowlerName = doc.select(".bowler-name");
         for (Element bowler : bowlerName) {
@@ -113,67 +155,79 @@ public class MainClass {
             playerPoints.put(name, playerPoints.getOrDefault(name, 0) + calculateBowlingPoints(over, maidens, wickets, rpo));
         }
         String momInfo = doc.select(".match-information").get(1).child(1).select("span").get(0).html().replaceAll("\\s\\(.*\\)$", "");
-        playerPoints.put(momInfo, playerPoints.getOrDefault(momInfo, 0) + 100);
-        
+        if (!momInfo.equals("tba"))
+            playerPoints.put(momInfo, playerPoints.getOrDefault(momInfo, 0) + 100);
+
         for (Element batsman : batsmanName) {
             batsman = batsman.parent();
             int numberOfChild = batsman.children().size();
             if (numberOfChild < 2)
                 continue;
             String dismissalMode = batsman.child(2).html().replaceAll("\\s<span.*$", "").replace("†", "");
-            // #TODO Handle Dismissal mode
             if (dismissalMode.matches("^c .* b .*$")) {
-                String fielder="";
+                String fielder = "";
                 String catcherName = dismissalMode.replaceAll("\\sb\\s.*", "").replaceAll("^c\\s", "");
                 if (catcherName.equals("&amp;")) {
                     catcherName = dismissalMode.replaceAll("^c &amp; b ", "");
                 }
                 int count = 0;
-                for (String player:players){
-                    if(player.contains(catcherName)){
-                        fielder=player;
+                for (String player : players) {
+                    if (player.contains(catcherName)) {
+                        fielder = player;
                         count++;
                     }
                 }
-                if(count==1){
+                if (count == 1) {
                     playerPoints.put(fielder, playerPoints.getOrDefault(fielder, 0) + 20);
-                }
-                else handleFieldingPointCase(catcherName, link);
+                } else
+                    handleFieldingPointCase(catcherName, link);
             } else if (dismissalMode.matches("^st .* b .*$")) {
                 String stumper = dismissalMode.replaceAll("\\sb\\s.*", "").replaceAll("^st\\s", "");
-                int count=0;
-                for (String player:players){
-                    if(player.contains(stumper)){
-                        stumper=player;
+                int count = 0;
+                for (String player : players) {
+                    if (player.contains(stumper)) {
+                        stumper = player;
                         count++;
                     }
                 }
-                if(count==1){
+                if (count == 1) {
                     playerPoints.put(stumper, playerPoints.getOrDefault(stumper, 0) + 25);
-                }
-                else handleFieldingPointCase(stumper, link);
+                } else
+                    handleFieldingPointCase(stumper, link);
             } else if (dismissalMode.matches("^run out.*$")) {
-                String[] runout=dismissalMode.replaceAll("^run out \\(", "").replace(")", "").split("/");
-                int roP= runout.length==1?50:25;
-                for (String fielder:runout){
+                String[] runout = dismissalMode.replaceAll("^run out \\(", "").replace(")", "").split("/");
+                int roP = runout.length == 1 ? 50 : 25;
+                for (String fielder : runout) {
                     int count = 0;
-                    for (String player:players){
-                        if(player.contains(fielder)){
-                            fielder=player;
+                    for (String player : players) {
+                        if (player.contains(fielder)) {
+                            fielder = player;
                             count++;
                         }
                     }
-                    if (count==1){
+                    if (count == 1) {
                         playerPoints.put(fielder, playerPoints.getOrDefault(fielder, 0) + roP);
-                    }
-                    else handleFieldingPointCase(fielder, link);
+                    } else
+                        handleFieldingPointCase(fielder, link);
                 }
             }
         }
     }
-    public static void handleFieldingPointCase(String fielderName,String match){
-        System.out.println("Two Matching player names for the fielder "+fielderName+" in this match "+match );
+
+    public static void handleFieldingPointCase(String fielderName, String match) {
+        if (!match.contains("656409"))
+            System.out.println("Two Matching player names for the fielder " + fielderName + " in this match " + match);
     }
+
+    public static TableModel toTableModel(Map<String, Integer> map) {
+        DefaultTableModel model = new DefaultTableModel(new Object[] { "Team", "Points" }, 0);
+        for (Entry<String, Integer> entry : map.entrySet()) {
+            model.addRow(new Object[] { entry.getKey(), entry.getValue() });
+        }
+
+        return model;
+    }
+
     public static int calculateBattingPoints(int run, int balls, int fours, int sixes, float sr) {
         int points = 0;
         points += run;
@@ -271,10 +325,9 @@ public class MainClass {
             System.out.println(entry.getKey() + " : " + entry.getValue());
         }
     }
+
     public static void cacheHTML(String htmlContent, String saveLocation) throws IOException {
-        Writer writer =
-                new OutputStreamWriter(
-                   new FileOutputStream(saveLocation), "UTF-8");
+        Writer writer = new OutputStreamWriter(new FileOutputStream(saveLocation), "UTF-8");
         BufferedWriter bufferedWriter = new BufferedWriter(writer);
         bufferedWriter.write(htmlContent.toString());
         bufferedWriter.close();
