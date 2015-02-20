@@ -50,7 +50,18 @@ public class MainClass {
             "D Ramdin", "AR Cusack", "Khurram Khan", "T Mupariwa" };
     private static String[] TUS = { "CJ Anderson", "GJ Maxwell", "RA Jadeja", "DL Vettori", "Shaiman Anwar", "Mohammad Tauqir", "CJ Chibhabha", "H Masakadza", "FDM Karunaratne",
             "JM Anderson", "Sarfraz Ahmed", "JC Tredwell", "RR Rossouw", "PJ Cummins" };
-
+    private static String[] HHMD = { "NO Miller", "JR Hazlewood", "GH Dockrell", "NJ O'Brien", "SM Sharif", "JC Buttler", "Anamul Haque", "MW Machan", "E Chigumbura",
+            "AD Mathews", "HDRL Thirimanne", "Rohan Mustafa", "SP Patil", "Fahad Alhashmi" };
+    private static String[] EIP = { "SS Cotrell", "Javed Ahmadi", "Taijul Islam", "MN Hossain", "Al-Amin Hossain", "KD Mills", "DPMD Jayawardene", "Ahmed Shehzad", "JF Mooney",
+            "IR Bell", "MR Marsh", "BJ Haddin", "JP Duminy" };
+    private static String[] CD = { "M Morkel", "HM Amla", "T Panyangara", "SF Mire", "S Matsikenyeri", "KJ Abbott", "CH Gayle", "DM Bravo", "Haris Sohail", "Hamid Hassan",
+            "Usman Ghani", "Afsar Zazai", "LD Chandimal", "PR Stirling" };
+    private static String[] MM = { "MJ Guptill", "Rubel Hossain", "SJ Benn", "Shahid Afridi", "S Dhawan", "Mohammed Shami", "BRM Taylor", "Mashrafe Mortaza", "Asghar Stanikzai",
+            "DW Steyn", "TM Dilshan", "PVD Chameera", "JH Davey", "KAJ Roach" };
+    private static String[] MW = { "JP Faulkner", "AD Russell", "BB McCullum", "JE Root", "Younis Khan", "WTS Porterfield", "MM Sharma", "Yasir Shah", "Rahat Ali", "Ehsan Adil",
+            "RM Haq", "Mushfiqur Rahim", "WD Parnell", "Nasir Jamal" };
+    private static String[] BB = { "MG Johnson", "Wahab Riaz", "RW Chakabva", "MA Leask", "F du Plessis", "NLTC Perera", "SK Raina", "TWM Latham", "HJW Gardiner", "Tamim Iqbal",
+            "SL Malinga", "RAS Lakmal", "AR Berenger" };
     public static HashMap<String, Integer> teamPoints = new HashMap<String, Integer>();
 
     public static void main(String args[]) throws IOException {
@@ -67,7 +78,7 @@ public class MainClass {
         }
         // Handling Taylor Case
         playerPoints.put("RML Taylor", playerPoints.getOrDefault("RML Taylor", 0) + 20);
-        playerPoints.put("LRPL Taylor", playerPoints.getOrDefault("LRPL Taylor", 0) + 20);
+        playerPoints.put("LRPL Taylor", playerPoints.getOrDefault("LRPL Taylor", 0) + 40);
 
         teamPoints.put("Srini Mama Loyalists", calculateTeamPoints(SML));
         teamPoints.put("A-Class United", calculateTeamPoints(ACU));
@@ -79,14 +90,19 @@ public class MainClass {
         teamPoints.put("ZZZTHATBALL", calculateTeamPoints(ZTB));
         teamPoints.put("Yenna Da Anga Satham", calculateTeamPoints(YDAS));
         teamPoints.put("The Usual Suspects", calculateTeamPoints(TUS));
-
+        teamPoints.put("HHMD", calculateTeamPoints(HHMD));
+        teamPoints.put("Chennai Dynamos", calculateTeamPoints(CD));
+        teamPoints.put("Ennama ipdi panreengalema", calculateTeamPoints(EIP));
+        teamPoints.put("Mambalam Men", calculateTeamPoints(MM));
+        teamPoints.put("Malayankulam Warriors", calculateTeamPoints(MW));
+        teamPoints.put("Badax Baadhusaahs", calculateTeamPoints(BB));
         // printMap(sortByComparator(playerPoints, false));
         JFrame frame = new JFrame("Cricketism Scorecard");
         final JScrollPane scrolll = new JScrollPane(new JTable(toTableModel(sortByComparator(teamPoints, false))));
 
         frame.add(scrolll);
 
-        frame.setSize(300, 300);
+        frame.setSize(300, 310);
         frame.setLocationRelativeTo(null);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setVisible(true);
@@ -96,6 +112,7 @@ public class MainClass {
     public static int calculateTeamPoints(String[] playerNames) {
         int points = 0;
         for (String player : playerNames) {
+            System.out.println(player + " " + playerPoints.getOrDefault(player, 0));
             points += playerPoints.getOrDefault(player, 0);
         }
         return points;
@@ -215,7 +232,7 @@ public class MainClass {
     }
 
     public static void handleFieldingPointCase(String fielderName, String match) {
-        if (!match.contains("656409"))
+        if (!match.contains("656409") && !match.contains("656415"))
             System.out.println("Two Matching player names for the fielder " + fielderName + " in this match " + match);
     }
 
